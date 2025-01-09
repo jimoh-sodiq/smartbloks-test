@@ -11,15 +11,32 @@
                   <small class="text-xs text-gray-600 leading-0 mt-1 ml-1">https://testsite.smartbloks.site</small>
                </div>
             </div>
-            <iframe class="w-full flex-1" src="/preview"></iframe>
+            <iframe class="w-full flex-1" src="/preview" ref="iframeRef"></iframe>
          </div>
       </div>
    </div>
 </template>
 
 <script lang='ts' setup>
+import {ref, watch} from "vue"
 import Sidebar from '../components/Sidebar.vue'
+import { useEditorStore } from "../store/editor"
+import {ParentToIframeMessage} from "../types.ts";
 
+const editorStore = useEditorStore()
+
+const iframeRef = ref<HTMLIFrameElement | null>(null)
+
+function sendMessage(msg: ParentToIframeMessage){
+  if (iframeRef.value && iframeRef.value.contentWindow){
+    iframeRef.value.contentWindow.postMessage(msg, "*")
+  }
+}
+
+watch(() => editorStore.title, (newVal) => {
+   localStorage.setItem('preview', editorStore.title || "")
+   sendMessage({title: newVal})
+}, {immediate: true})
 
 </script>
 
